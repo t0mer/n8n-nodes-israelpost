@@ -214,6 +214,18 @@ describe('Zip Code › Find by Address', () => {
 		expect(calls.filter((c) => c.path === '/GetStreets-lang')).toHaveLength(1);
 	});
 
+	it('asks again after a failed lookup instead of caching the failure', async () => {
+		let failures = 3;
+		const flaky: Router = (path, qs) =>
+			path === '/getcities-lang' && failures-- > 0
+				? { statusCode: 503, body: '' }
+				: router(path, qs);
+		const { json, calls } = await run([address(), address()], { continueOnFail: true }, flaky);
+		expect(json[0].error).toBe('Israel Post returned HTTP 503');
+		expect(json[1]).toMatchObject({ found: true, zip: '6439612' });
+		expect(calls.filter((c) => c.path === '/getcities-lang')).toHaveLength(4);
+	});
+
 	it('merges the result into the input item with Put Output in Field', async () => {
 		const { json } = await run(address({ options: { outputField: 'postal' } }), {
 			inputJson: [{ customer: 'Dana' }],

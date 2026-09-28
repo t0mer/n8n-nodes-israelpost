@@ -38,13 +38,13 @@ export interface ResolveOptions {
 
 /**
  * Name lookups of one execution, so a batch of addresses in the same city
- * queries the city once. Holds promises, so a failure (an ambiguous name) is
- * reused as well.
+ * queries the city once. Holds the picks (found, ambiguous or not found);
+ * a request that failed is dropped so the next item asks again.
  */
 export class LookupCache {
-	readonly localities = new Map<string, Promise<ResolvedLocality | null>>();
+	readonly localities = new Map<string, Promise<PickResult<ApiLocality>>>();
 
-	readonly streets = new Map<string, Promise<ResolvedStreet | null>>();
+	readonly streets = new Map<string, Promise<PickResult<ApiStreet>>>();
 }
 
 async function cached<T>(
@@ -57,6 +57,7 @@ async function cached<T>(
 	if (!entry) {
 		entry = load();
 		map.set(key, entry);
+		entry.catch(() => map.delete(key));
 	}
 	return await entry;
 }
@@ -90,9 +91,17 @@ function assertId(ctx: Context, what: string, id: string, itemIndex?: number) {
 	}
 }
 
-function ambiguous(ctx: Context, kind: string, value: string, pick: PickResult<Candidate>) {
-	if (pick.status !== 'ambiguous') return;
-	throw new NodeOperationError(ctx.getNode(), ambiguousMessage(kind, value, pick.candidates));
+/** The picked row, null when nothing matched; throws when the name is ambiguous. */
+function picked<T extends Candidate>(
+	ctx: Context,
+	kind: string,
+	value: string,
+	pick: PickResult<T>,
+): T | null {
+	if (pick.status === 'ambiguous') {
+		throw new NodeOperationError(ctx.getNode(), ambiguousMessage(kind, value, pick.candidates));
+	}
+	return pick.status === 'found' ? pick.candidate : null;
 }
 
 /**
@@ -114,28 +123,23 @@ export async function resolveLocality(
 		assertId(ctx, 'Locality', value, opts.itemIndex);
 		return { id: value, name: locator.name ?? null, code: null, zip: null, resolvedByName: false };
 	}
-	return await cached(
-		opts.cache?.localities,
-		`${opts.lang}|${opts.matching}|${value}`,
-		async () => {
-			const pick = await resolveByName(
-				value,
-				async (prefix) => await getLocalities(ctx, prefix, opts.lang, opts.itemIndex),
-				opts.matching,
-			);
-			ambiguous(ctx, 'Locality', value, pick);
-			if (pick.status !== 'found') return null;
-			const raw = pick.candidate;
-			return {
-				id: raw.id,
-				name: raw.n,
-				code: raw.sym,
-				zip: localityZipOf(raw),
-				resolvedByName: true,
-				raw,
-			};
-		},
+	const pick = await cached(opts.cache?.localities, `${opts.lang}|${opts.matching}|${value}`, () =>
+		resolveByName(
+			value,
+			async (prefix) => await getLocalities(ctx, prefix, opts.lang, opts.itemIndex),
+			opts.matching,
+		),
 	);
+	const raw = picked(ctx, 'Locality', value, pick);
+	if (!raw) return null;
+	return {
+		id: raw.id,
+		name: raw.n,
+		code: raw.sym,
+		zip: localityZipOf(raw),
+		resolvedByName: true,
+		raw,
+	};
 }
 
 /**
@@ -154,15 +158,13 @@ export async function resolveStreet(
 		return { id: value, name: locator.name ?? null, code: null };
 	}
 	const key = `${opts.lang}|${opts.matching}|${localityId}|${value}`;
-	return await cached(opts.cache?.streets, key, async () => {
-		const pick = await resolveByName(
+	const pick = await cached(opts.cache?.streets, key, () =>
+		resolveByName(
 			value,
 			async (prefix) => await getStreets(ctx, localityId, prefix, opts.lang, opts.itemIndex),
 			opts.matching,
-		);
-		ambiguous(ctx, 'Street', value, pick);
-		if (pick.status !== 'found') return null;
-		const raw = pick.candidate;
-		return { id: raw.id, name: raw.n, code: raw.sym, raw };
-	});
+		),
+	);
+	const raw = picked(ctx, 'Street', value, pick);
+	return raw && { id: raw.id, name: raw.n, code: raw.sym, raw };
 }
