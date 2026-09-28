@@ -5,6 +5,14 @@ address or a PO box. It also works the other way, finding the address of a zip c
 search localities and streets. It uses the same backend as the Israel Post
 [locate-zip page](https://doar.israelpost.co.il/locatezip).
 
+<video src="https://raw.githubusercontent.com/t0mer/n8n-nodes-israelpost/main/docs/demo.mp4" controls muted width="100%"></video>
+
+[![Israel Post node demo: find the zip codes of five addresses and a PO box. Click to play the video.](https://raw.githubusercontent.com/t0mer/n8n-nodes-israelpost/main/docs/demo-poster.png)](https://github.com/t0mer/n8n-nodes-israelpost/blob/main/docs/demo.mp4)
+
+▶ [Watch the demo video (MP4, 39 s)](https://github.com/t0mer/n8n-nodes-israelpost/blob/main/docs/demo.mp4).
+The workflow is in [`demo/workflow.json`](demo/workflow.json). It looks up five addresses
+(one with an ambiguous street name, kept going by Continue On Fail) and a PO box.
+
 > [!WARNING]
 > **Unofficial.** This package is not affiliated with, endorsed by or supported by Israel Post.
 > It calls the undocumented backend that the Israel Post website uses from the browser. There is
