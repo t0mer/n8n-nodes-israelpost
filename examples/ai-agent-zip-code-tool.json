@@ -1,0 +1,153 @@
+{
+	"name": "Israel Post: AI agent that answers zip code questions",
+	"nodes": [
+		{
+			"parameters": {
+				"options": {}
+			},
+			"id": "8e8777cd-0a78-4526-8ef1-c2e301091df3",
+			"name": "When Chat Message Received",
+			"type": "@n8n/n8n-nodes-langchain.chatTrigger",
+			"typeVersion": 1.1,
+			"position": [0, 0],
+			"webhookId": "dd78b18c-546d-4af4-8625-f3130b176458"
+		},
+		{
+			"parameters": {
+				"options": {
+					"systemMessage": "You help users find Israeli postal codes (מיקוד) and the addresses they belong to.\n\n- To find a zip code, call the Find Zip Code tool with the locality, street and house number. Pass the names in Hebrew, as Israel Post spells them (for example תל אביב - יפו, דיזנגוף).\n- House numbers are digits only. Israel Post does not accept letter suffixes: if the user writes 12א, pass 12. Leave the entrance empty unless the user names one.\n- If the tool reports that a name is ambiguous, show the candidates and ask the user which one they mean.\n- To find the address of a seven-digit zip code, call the Find Address by Zip tool.\n- Never guess a zip code the tools did not return."
+				}
+			},
+			"id": "b60356e7-26d6-403d-8947-47000e6046aa",
+			"name": "Zip Code Agent",
+			"type": "@n8n/n8n-nodes-langchain.agent",
+			"typeVersion": 1.7,
+			"position": [240, 0]
+		},
+		{
+			"parameters": {
+				"model": {
+					"__rl": true,
+					"mode": "list",
+					"value": "gpt-4o-mini"
+				},
+				"options": {}
+			},
+			"id": "e89c3f70-ea7a-475b-bda1-d320d986dad3",
+			"name": "OpenAI Chat Model",
+			"type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+			"typeVersion": 1.2,
+			"position": [80, 220],
+			"credentials": {
+				"openAiApi": {
+					"name": "OpenAI account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"descriptionType": "manual",
+				"toolDescription": "Find the Israeli zip code (מיקוד) of a street address. Takes a locality (city) name, a street name and a house number, in Hebrew. Leave the street empty for small localities that have a single zip code.",
+				"resource": "zipCode",
+				"operation": "findByAddress",
+				"locality": {
+					"__rl": true,
+					"mode": "name",
+					"value": "={{ $fromAI('locality', 'Locality (city) name in Hebrew, for example תל אביב - יפו', 'string') }}"
+				},
+				"street": {
+					"__rl": true,
+					"mode": "name",
+					"value": "={{ $fromAI('street', 'Street name in Hebrew, for example דיזנגוף. Empty for a locality-wide zip code.', 'string') }}"
+				},
+				"houseNumber": "={{ $fromAI('houseNumber', 'House number, digits only. Empty when the street is empty.', 'string') }}",
+				"entrance": "={{ $fromAI('entrance', 'Building entrance, usually a Hebrew letter. Usually empty.', 'string') }}",
+				"options": {
+					"onNotFound": "empty"
+				}
+			},
+			"id": "a211a345-9fd6-4bd1-a19d-538ca43bbdb2",
+			"name": "Find Zip Code",
+			"type": "@t0mer/n8n-nodes-israelpost.israelPostTool",
+			"typeVersion": 1,
+			"position": [320, 220],
+			"credentials": {
+				"israelPostApi": {
+					"name": "Israel Post account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"descriptionType": "manual",
+				"toolDescription": "Find the address (locality, street, house number) that a seven-digit Israeli zip code belongs to.",
+				"resource": "address",
+				"operation": "findByZip",
+				"zip": "={{ $fromAI('zip', 'Seven-digit Israeli zip code, for example 6439612', 'string') }}",
+				"options": {
+					"onNotFound": "empty"
+				}
+			},
+			"id": "99d4ab25-cc38-4cca-a9f3-b44ad9f5bfd6",
+			"name": "Find Address by Zip",
+			"type": "@t0mer/n8n-nodes-israelpost.israelPostTool",
+			"typeVersion": 1,
+			"position": [520, 220],
+			"credentials": {
+				"israelPostApi": {
+					"name": "Israel Post account"
+				}
+			}
+		}
+	],
+	"connections": {
+		"When Chat Message Received": {
+			"main": [
+				[
+					{
+						"node": "Zip Code Agent",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"OpenAI Chat Model": {
+			"ai_languageModel": [
+				[
+					{
+						"node": "Zip Code Agent",
+						"type": "ai_languageModel",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Find Zip Code": {
+			"ai_tool": [
+				[
+					{
+						"node": "Zip Code Agent",
+						"type": "ai_tool",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Find Address by Zip": {
+			"ai_tool": [
+				[
+					{
+						"node": "Zip Code Agent",
+						"type": "ai_tool",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"settings": {
+		"executionOrder": "v1"
+	}
+}

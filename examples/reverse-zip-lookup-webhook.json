@@ -1,0 +1,79 @@
+{
+	"name": "Israel Post: look up the address of a zip code",
+	"nodes": [
+		{
+			"parameters": {
+				"path": "zip-to-address",
+				"responseMode": "responseNode",
+				"options": {}
+			},
+			"id": "3420f7b2-2519-4d12-9f99-87b3be5de1d0",
+			"name": "Zip Webhook",
+			"type": "n8n-nodes-base.webhook",
+			"typeVersion": 2,
+			"position": [0, 0],
+			"webhookId": "4cd45860-f71a-4d6e-ab6c-a675a42c5ea3"
+		},
+		{
+			"parameters": {
+				"resource": "address",
+				"operation": "findByZip",
+				"zip": "={{ $json.query.zip }}",
+				"options": {
+					"language": "en",
+					"onNotFound": "empty"
+				}
+			},
+			"id": "a198ef16-7357-4bdb-9067-c2232b27d5c6",
+			"name": "Find Address by Zip",
+			"type": "@t0mer/n8n-nodes-israelpost.israelPost",
+			"typeVersion": 1,
+			"position": [220, 0],
+			"onError": "continueRegularOutput",
+			"credentials": {
+				"israelPostApi": {
+					"name": "Israel Post account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"respondWith": "firstIncomingItem",
+				"options": {}
+			},
+			"id": "31a41efd-7064-4d17-8b77-e62df1532c35",
+			"name": "Respond with Address",
+			"type": "n8n-nodes-base.respondToWebhook",
+			"typeVersion": 1.1,
+			"position": [440, 0]
+		}
+	],
+	"connections": {
+		"Zip Webhook": {
+			"main": [
+				[
+					{
+						"node": "Find Address by Zip",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Find Address by Zip": {
+			"main": [
+				[
+					{
+						"node": "Respond with Address",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"settings": {
+		"executionOrder": "v1"
+	}
+}

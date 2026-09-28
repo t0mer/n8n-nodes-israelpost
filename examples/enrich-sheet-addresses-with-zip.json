@@ -1,0 +1,229 @@
+{
+	"name": "Israel Post: add zip codes to a Google Sheet of addresses",
+	"nodes": [
+		{
+			"parameters": {
+				"rule": {
+					"interval": [
+						{
+							"triggerAtHour": 6
+						}
+					]
+				}
+			},
+			"id": "0711b339-6d0c-49de-9433-a3af53ac1006",
+			"name": "Every Day 06:00",
+			"type": "n8n-nodes-base.scheduleTrigger",
+			"typeVersion": 1.2,
+			"position": [0, 0]
+		},
+		{
+			"parameters": {
+				"documentId": {
+					"__rl": true,
+					"mode": "id",
+					"value": "YOUR_SPREADSHEET_ID"
+				},
+				"sheetName": {
+					"__rl": true,
+					"mode": "name",
+					"value": "Addresses"
+				},
+				"options": {}
+			},
+			"id": "c06f4883-6f9a-4937-a691-a704b29ba1f1",
+			"name": "Read Addresses",
+			"type": "n8n-nodes-base.googleSheets",
+			"typeVersion": 4.5,
+			"position": [220, 0],
+			"credentials": {
+				"googleSheetsOAuth2Api": {
+					"name": "Google Sheets account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "loose",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "4382df9e-f825-4e6a-b89d-179bec37ef4e",
+							"leftValue": "={{ $json.zip }}",
+							"rightValue": "",
+							"operator": {
+								"type": "string",
+								"operation": "empty",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "3b8ebac2-b081-41fe-86ef-ab30b872fd5f",
+			"name": "Rows Without a Zip",
+			"type": "n8n-nodes-base.filter",
+			"typeVersion": 2.2,
+			"position": [440, 0]
+		},
+		{
+			"parameters": {
+				"resource": "zipCode",
+				"operation": "findByAddress",
+				"locality": {
+					"__rl": true,
+					"mode": "name",
+					"value": "={{ $json.city }}"
+				},
+				"street": {
+					"__rl": true,
+					"mode": "name",
+					"value": "={{ $json.street }}"
+				},
+				"houseNumber": "={{ $json.house }}",
+				"entrance": "={{ $json.entrance }}",
+				"options": {
+					"delayMs": 250,
+					"onNotFound": "empty",
+					"outputField": "postal"
+				}
+			},
+			"id": "86f508c9-33c8-4ace-b971-6e156cbc2d3d",
+			"name": "Find Zip Code",
+			"type": "@t0mer/n8n-nodes-israelpost.israelPost",
+			"typeVersion": 1,
+			"position": [660, 0],
+			"onError": "continueRegularOutput",
+			"credentials": {
+				"israelPostApi": {
+					"name": "Israel Post account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"operation": "update",
+				"documentId": {
+					"__rl": true,
+					"mode": "id",
+					"value": "YOUR_SPREADSHEET_ID"
+				},
+				"sheetName": {
+					"__rl": true,
+					"mode": "name",
+					"value": "Addresses"
+				},
+				"columns": {
+					"mappingMode": "defineBelow",
+					"value": {
+						"row_number": "={{ $('Rows Without a Zip').item.json.row_number }}",
+						"zip": "={{ $json.postal?.zip ?? '' }}",
+						"zip_status": "={{ $json.error ? 'error: ' + $json.error : ($json.postal.found ? 'found (' + $json.postal.source + ')' : 'not found') }}"
+					},
+					"matchingColumns": ["row_number"],
+					"schema": [
+						{
+							"id": "row_number",
+							"displayName": "row_number",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"type": "string",
+							"canBeUsedToMatch": true,
+							"removed": false,
+							"readOnly": true
+						},
+						{
+							"id": "zip",
+							"displayName": "zip",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"type": "string",
+							"canBeUsedToMatch": true,
+							"removed": false
+						},
+						{
+							"id": "zip_status",
+							"displayName": "zip_status",
+							"required": false,
+							"defaultMatch": false,
+							"display": true,
+							"type": "string",
+							"canBeUsedToMatch": true,
+							"removed": false
+						}
+					]
+				},
+				"options": {}
+			},
+			"id": "baae3f02-1c38-4001-a4fd-7ad8a4050513",
+			"name": "Write Zip Back",
+			"type": "n8n-nodes-base.googleSheets",
+			"typeVersion": 4.5,
+			"position": [880, 0],
+			"credentials": {
+				"googleSheetsOAuth2Api": {
+					"name": "Google Sheets account"
+				}
+			}
+		}
+	],
+	"connections": {
+		"Every Day 06:00": {
+			"main": [
+				[
+					{
+						"node": "Read Addresses",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Read Addresses": {
+			"main": [
+				[
+					{
+						"node": "Rows Without a Zip",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Rows Without a Zip": {
+			"main": [
+				[
+					{
+						"node": "Find Zip Code",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Find Zip Code": {
+			"main": [
+				[
+					{
+						"node": "Write Zip Back",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"settings": {
+		"executionOrder": "v1"
+	}
+}

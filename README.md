@@ -21,7 +21,8 @@ The workflow is in [`demo/workflow.json`](demo/workflow.json). It looks up five 
 > execution, and has a delay option for large batches.
 
 [Installation](#installation) · [Credentials](#credentials) · [Operations](#operations) ·
-[Name matching](#name-matching) · [Batches](#batches) · [Errors](#errors) · [License](#license)
+[Name matching](#name-matching) · [Batches](#batches) · [Errors](#errors) ·
+[Example workflows](#example-workflows) · [License](#license)
 
 ## Installation
 
@@ -220,6 +221,19 @@ Street **Search** to find an ID.
 | `Locality "X" has no zip code` | A few small localities have no zip code at all (follows On Not Found) |
 | `No zip code found for …` | Israel Post has no zip for this input (e.g. a house number that doesn't exist, or a wrong entrance) |
 | `Unexpected response from Israel Post (the site may have changed)` | The backend changed. Please open an issue. |
+
+## Example workflows
+
+Import any of these from [`examples/`](examples/) with **Workflows → Import from File**, then pick
+your Israel Post credential in each Israel Post node. Spreadsheet IDs are placeholders; replace them
+with your own.
+
+| File | What it does |
+|---|---|
+| [`enrich-sheet-addresses-with-zip.json`](examples/enrich-sheet-addresses-with-zip.json) | Every morning, reads a Google Sheet of addresses (`city`, `street`, `house`, `entrance`), finds the zip of each row that has none, and writes the zip and a status back. |
+| [`checkout-address-zip-webhook.json`](examples/checkout-address-zip-webhook.json) | Webhook for a checkout or sign-up form: completes a posted address with its zip code, or answers 422 when there is none. |
+| [`reverse-zip-lookup-webhook.json`](examples/reverse-zip-lookup-webhook.json) | `GET ?zip=6439612` returns the locality, street and house number of the zip code, in English. |
+| [`ai-agent-zip-code-tool.json`](examples/ai-agent-zip-code-tool.json) | An AI Agent that uses the node as two tools to answer "what is the zip code of …?" and "which address is this zip?" |
 
 ## Development
 

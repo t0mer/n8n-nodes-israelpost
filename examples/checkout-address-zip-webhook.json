@@ -1,0 +1,154 @@
+{
+	"name": "Israel Post: complete a checkout address with its zip code",
+	"nodes": [
+		{
+			"parameters": {
+				"httpMethod": "POST",
+				"path": "address-zip",
+				"responseMode": "responseNode",
+				"options": {}
+			},
+			"id": "eaff1cde-9a2a-482f-a64d-212d7761e7a7",
+			"name": "Address Webhook",
+			"type": "n8n-nodes-base.webhook",
+			"typeVersion": 2,
+			"position": [0, 0],
+			"webhookId": "e0983386-ade2-44c4-ad63-e503da89ce5a"
+		},
+		{
+			"parameters": {
+				"resource": "zipCode",
+				"operation": "findByAddress",
+				"locality": {
+					"__rl": true,
+					"mode": "name",
+					"value": "={{ $json.body.city }}"
+				},
+				"street": {
+					"__rl": true,
+					"mode": "name",
+					"value": "={{ $json.body.street }}"
+				},
+				"houseNumber": "={{ $json.body.house }}",
+				"entrance": "={{ $json.body.entrance ?? '' }}",
+				"options": {
+					"onNotFound": "empty"
+				}
+			},
+			"id": "ce817aa5-5848-4c96-a3e5-b6a876899a04",
+			"name": "Find Zip Code",
+			"type": "@t0mer/n8n-nodes-israelpost.israelPost",
+			"typeVersion": 1,
+			"position": [220, 0],
+			"onError": "continueRegularOutput",
+			"credentials": {
+				"israelPostApi": {
+					"name": "Israel Post account"
+				}
+			}
+		},
+		{
+			"parameters": {
+				"conditions": {
+					"options": {
+						"caseSensitive": true,
+						"leftValue": "",
+						"typeValidation": "loose",
+						"version": 2
+					},
+					"conditions": [
+						{
+							"id": "dcef2603-812f-47bd-a937-7e3cceb5d03d",
+							"leftValue": "={{ $json.found }}",
+							"rightValue": "",
+							"operator": {
+								"type": "boolean",
+								"operation": "true",
+								"singleValue": true
+							}
+						}
+					],
+					"combinator": "and"
+				},
+				"options": {}
+			},
+			"id": "593645a2-a2d2-45ca-b924-5d121b595080",
+			"name": "Zip Found?",
+			"type": "n8n-nodes-base.if",
+			"typeVersion": 2.2,
+			"position": [440, 0]
+		},
+		{
+			"parameters": {
+				"respondWith": "json",
+				"responseBody": "={{ { zip: $json.zip, locality: $json.locality.name, street: $json.street?.name ?? null, house: $json.house } }}",
+				"options": {}
+			},
+			"id": "e462a815-bcf7-4b42-90da-3426128893a1",
+			"name": "Respond with Zip",
+			"type": "n8n-nodes-base.respondToWebhook",
+			"typeVersion": 1.1,
+			"position": [680, -100]
+		},
+		{
+			"parameters": {
+				"respondWith": "json",
+				"responseBody": "={{ { error: $json.error ?? 'No zip code found for this address. Check the city, street and house number.' } }}",
+				"options": {
+					"responseCode": 422
+				}
+			},
+			"id": "90035340-7070-4c67-8575-73c973fa1c84",
+			"name": "Respond Not Found",
+			"type": "n8n-nodes-base.respondToWebhook",
+			"typeVersion": 1.1,
+			"position": [680, 100]
+		}
+	],
+	"connections": {
+		"Address Webhook": {
+			"main": [
+				[
+					{
+						"node": "Find Zip Code",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Find Zip Code": {
+			"main": [
+				[
+					{
+						"node": "Zip Found?",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Zip Found?": {
+			"main": [
+				[
+					{
+						"node": "Respond with Zip",
+						"type": "main",
+						"index": 0
+					}
+				],
+				[
+					{
+						"node": "Respond Not Found",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"pinData": {},
+	"settings": {
+		"executionOrder": "v1"
+	}
+}
