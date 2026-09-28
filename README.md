@@ -176,14 +176,17 @@ normalization. Normalization:
 So `תל-אביב - יפו`, `תל אביב יפו` and `תל אביב - יפו` all match Tel Aviv. Spelling variants are
 **not** unified: `קריית` and `קרית` are different names.
 
-If the full name finds nothing, the node retries once with the first word only. For example,
-`תל אביב` still finds `תל אביב - יפו`. It then picks a result:
+The node searches Israel Post with the name as you typed it, then with the normalized name, and
+finally with the first word only (so `תל אביב העיר` still reaches `תל אביב - יפו`). It stops at the
+first search that returns results, then picks one:
 
 1. an exact normalized match on the name or its synonym, if there is one
-2. otherwise the only result, if there is exactly one
+2. otherwise the only result, if there is exactly one, unless it came from the first-word search
 3. otherwise:
    - **Exact** (default) fails and lists the candidates, e.g.
-     `Street "דיזנגוף ס" is ambiguous. Candidates: דיזנגוף (id 91992), דיזנגוף סנטר (id 113842), …`
+     `Street "דיזנגו" is ambiguous. Candidates: דיזנגוף (id 91992), דיזנגוף סנטר (id 113842), …`.
+     A single first-word result is reported the same way (`… has no exact match. Candidates: …`),
+     because a typo like `בן יהודא` shouldn't silently become `בן גוריון`.
    - **First Result** takes the top result
 
 Use **By ID** (or **From List**) when you already know the Israel Post ID. Use Locality or
@@ -204,8 +207,9 @@ Street **Search** to find an ID.
 | Error | Meaning |
 |---|---|
 | `Israel Post rejected the subscription key` | The key has changed. See [Credentials](#credentials). |
-| `Locality "X" is ambiguous. Candidates: …` | Several matches. Use a fuller name, By ID, or Name Matching = First Result. |
+| `Locality "X" is ambiguous. Candidates: …` | Several matches, or only a first-word match (`has no exact match`). Use a fuller name, By ID, or Name Matching = First Result. |
 | `Locality "X" has no single zip code, a street is required` | The locality is split by street |
+| `Locality "X" has no zip code` | A few small localities have no zip code at all (follows On Not Found) |
 | `No zip code found for …` | Israel Post has no zip for this input (e.g. a house number that doesn't exist, or a wrong entrance) |
 | `Unexpected response from Israel Post (the site may have changed)` | The backend changed. Please open an issue. |
 
