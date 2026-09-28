@@ -1,0 +1,29 @@
+node_modules/
+dist/
+*.log
+npm-debug.log*
+
+# Secrets / local env
+.env
+.env.*
+!.env.example
+
+# Claude / AI assistant context — local only
+CLAUDE.md
+.claude/
+.cursor/
+.aider*
+
+# Design / planning docs — local only (docs/API.md and the demo are committed)
+*.design.md
+*.implementation.md
+
+# Security scan output, raw API captures, demo raw video
+scans/
+test/fixtures/raw/
+recordings/
+
+# Editor / OS
+.idea/
+*.swp
+.DS_Store
