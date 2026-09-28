@@ -130,6 +130,32 @@ describe('Zip Code › Find by Address', () => {
 		});
 	});
 
+	it('falls back to the locality-wide zip for a locality given by ID', async () => {
+		const { json, calls } = await run(address({ locality: byId('68'), street: byName('זזז') }));
+		expect(json[0]).toMatchObject({ found: true, zip: '1931500', source: 'locality' });
+		expect(json[0].note).toMatch(/was not found in 68/);
+		expect(calls.at(-1)?.qs).toEqual({ CityID: '68', Lang: 'he', ByMaanimID: 'true' });
+	});
+
+	it('reports a locality without any zip code per On Not Found', async () => {
+		const aviya = {
+			id: '2888',
+			sym: '1234',
+			n: 'אביה',
+			syn: 'אביה',
+			divided: false,
+			zip: '0000000',
+		};
+		const withAviya: Router = (path, qs) =>
+			path === '/getcities-lang' && String(qs.CityStartsWith).startsWith('אביה')
+				? ok({ ReturnCode: 0, ErrorMessage: null, Result: [aviya] })
+				: router(path, qs);
+		const params = address({ locality: byName('אביה'), street: byName('') });
+		await expect(run(params, {}, withAviya)).rejects.toThrow('Locality "אביה" has no zip code');
+		const { json } = await run({ ...params, options: { onNotFound: 'empty' } }, {}, withAviya);
+		expect(json[0]).toMatchObject({ found: false, zip: null, source: 'locality' });
+	});
+
 	it('lists the candidates of an ambiguous street', async () => {
 		await expect(run(address({ street: byName('דיזנגו') }))).rejects.toThrow(
 			'Street "דיזנגו" is ambiguous. Candidates: דיזנגוף (id 91992), דיזנגוף סנטר (id 113842)',

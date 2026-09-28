@@ -74,12 +74,21 @@ async function lookupAddress(
 		...(note ? { note } : {}),
 	});
 
+	const localityName = locality.name ?? locality.id;
 	if (!streetInput.value) {
 		const zip = await localityZip.call(this, locality, lang, itemIndex, raw);
 		if (zip) return localityRow(zip.zip, zip.message);
-		throw fail(
-			`Locality "${locality.name ?? locality.id}" has no single zip code, a street is required`,
-		);
+		// A few small localities are not divided by street and still have no zip code.
+		if (locality.raw && !locality.raw.divided) {
+			return notFound(this, itemIndex, options, `Locality "${localityName}" has no zip code`, {
+				source: 'locality',
+				locality: localityOutput(locality),
+				street: null,
+				house: '',
+				entrance: '',
+			});
+		}
+		throw fail(`Locality "${localityName}" has no single zip code, a street is required`);
 	}
 
 	const street = await resolveStreet(this, locality.id, streetInput, {
@@ -90,11 +99,11 @@ async function lookupAddress(
 	});
 	raw.street = street?.raw ?? null;
 	if (!street) {
-		const localityName = locality.name ?? locality.id;
-		if (locality.zip) {
+		const zip = await localityZip.call(this, locality, lang, itemIndex, raw);
+		if (zip) {
 			return localityRow(
-				locality.zip,
-				null,
+				zip.zip,
+				zip.message,
 				`Street "${streetInput.value}" was not found in ${localityName}; returned the locality-wide zip code`,
 			);
 		}
@@ -123,7 +132,7 @@ async function lookupAddress(
 	const zip = zipOf(result);
 	if (zip) return { found: true, zip, ...row, message: result.messageResult };
 
-	const address = `${street.name ?? street.id} ${house}, ${locality.name ?? locality.id}`;
+	const address = `${street.name ?? street.id} ${house}, ${localityName}`;
 	const hint = entrance
 		? ' Israel Post returns no zip code for an entrance the building does not have: try without Entrance.'
 		: '';
