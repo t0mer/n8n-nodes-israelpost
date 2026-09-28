@@ -169,6 +169,20 @@ export async function getStreets(
 	return Array.isArray(result) ? result : [];
 }
 
+/** Stands in for a missing `Result`, so callers see an ordinary miss. */
+const NOT_FOUND: ApiZipResult = {
+	zip: null,
+	cityid: null,
+	cityname: null,
+	streetid: null,
+	streetname: null,
+	msgtype: 'notfound',
+	messageResult: null,
+	pob: null,
+	houseNum: null,
+	entrance: null,
+};
+
 export interface ZipQuery {
 	localityId: string;
 	streetId?: string;
@@ -183,7 +197,7 @@ export async function searchZip(
 	query: ZipQuery,
 	itemIndex?: number,
 ): Promise<ApiZipResult> {
-	return await apiRequest<ApiZipResult>(
+	const result = await apiRequest<ApiZipResult | null>(
 		ctx,
 		'/SearchZip-Lang',
 		{
@@ -197,6 +211,7 @@ export async function searchZip(
 		},
 		itemIndex,
 	);
+	return result ?? NOT_FOUND;
 }
 
 export async function searchAddressByZip(
@@ -205,12 +220,13 @@ export async function searchAddressByZip(
 	lang: Language,
 	itemIndex?: number,
 ): Promise<ApiZipResult> {
-	return await apiRequest<ApiZipResult>(
+	const result = await apiRequest<ApiZipResult | null>(
 		ctx,
 		'/searchaddressbyzip-lang',
 		{ Zip: zip, Lang: lang },
 		itemIndex,
 	);
+	return result ?? NOT_FOUND;
 }
 
 /** The code in a zip result, or null when the result is a miss ("" / null / notfound). */

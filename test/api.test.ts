@@ -142,6 +142,16 @@ describe('apiRequest', () => {
 		expect(error.message).toBe('Could not reach Israel Post');
 	});
 
+	it('treats a null zip Result as not found', async () => {
+		const empty = { ReturnCode: 0, ErrorMessage: null, Result: null };
+		const { ctx } = fakeCtx([ok(empty), ok(empty)]);
+		expect(await searchZip(ctx, { localityId: '1', lang: 'he' })).toMatchObject({
+			msgtype: 'notfound',
+			zip: null,
+		});
+		expect((await searchAddressByZip(ctx, '1234567', 'he')).msgtype).toBe('notfound');
+	});
+
 	it('treats a null list Result as empty', async () => {
 		const { ctx } = fakeCtx([ok({ ReturnCode: 0, ErrorMessage: null, Result: null })]);
 		expect(await getLocalities(ctx, 'x', 'he')).toEqual([]);
