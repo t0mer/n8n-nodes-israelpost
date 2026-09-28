@@ -66,6 +66,13 @@ export function localityLocator(show: Show): INodeProperties {
 		displayOptions: { show },
 		modes: [
 			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				placeholder: 'Type the start of a locality name...',
+				typeOptions: { searchListMethod: 'searchLocalities', searchable: true },
+			},
+			{
 				displayName: 'By Name',
 				name: 'name',
 				type: 'string',
@@ -93,6 +100,13 @@ export function streetLocator(show: Show): INodeProperties {
 			'Leave empty to get the locality-wide zip code, for localities that have a single one',
 		displayOptions: { show },
 		modes: [
+			{
+				displayName: 'From List',
+				name: 'list',
+				type: 'list',
+				placeholder: 'Type the start of a street name...',
+				typeOptions: { searchListMethod: 'searchStreets', searchable: true },
+			},
 			{
 				displayName: 'By Name',
 				name: 'name',

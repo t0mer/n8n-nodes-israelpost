@@ -9,6 +9,7 @@ import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workf
 import { operationProperties, resourceProperty } from './descriptions/resources';
 import { localityProperties } from './descriptions/locality';
 import { streetProperties } from './descriptions/street';
+import * as listSearch from './listSearch';
 import { searchLocalities } from './operations/searchLocalities';
 import { searchStreets } from './operations/searchStreets';
 import type { Operation } from './operations/types';
@@ -40,6 +41,13 @@ export class IsraelPost implements INodeType {
 			...localityProperties,
 			...streetProperties,
 		],
+	};
+
+	methods = {
+		listSearch: {
+			searchLocalities: listSearch.searchLocalities,
+			searchStreets: listSearch.searchStreets,
+		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

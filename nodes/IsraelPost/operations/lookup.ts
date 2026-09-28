@@ -35,11 +35,23 @@ export interface ResolveOptions {
 	itemIndex?: number;
 }
 
+export interface LocatorInput {
+	mode: string;
+	value: string;
+	/** Display name n8n cached for a value picked from the list. */
+	name?: string;
+}
+
 /** `{ mode, value }` of a resource locator, with the value as a trimmed string. */
-export function readLocator(value: unknown): { mode: string; value: string } {
+export function readLocator(value: unknown): LocatorInput {
 	if (value && typeof value === 'object') {
 		const locator = value as INodeParameterResourceLocator;
-		return { mode: String(locator.mode ?? 'name'), value: String(locator.value ?? '').trim() };
+		const name = locator.cachedResultName;
+		return {
+			mode: String(locator.mode ?? 'name'),
+			value: String(locator.value ?? '').trim(),
+			name: typeof name === 'string' && name ? name : undefined,
+		};
 	}
 	return { mode: 'name', value: String(value ?? '').trim() };
 }
@@ -58,7 +70,7 @@ function assertId(ctx: Context, what: string, id: string, itemIndex?: number) {
  */
 export async function resolveLocality(
 	ctx: Context,
-	locator: { mode: string; value: string },
+	locator: LocatorInput,
 	opts: ResolveOptions,
 ): Promise<ResolvedLocality | null> {
 	const { mode, value } = locator;
@@ -69,7 +81,7 @@ export async function resolveLocality(
 	}
 	if (mode !== 'name') {
 		assertId(ctx, 'Locality', value, opts.itemIndex);
-		return { id: value, name: null, code: null, zip: null, resolvedByName: false };
+		return { id: value, name: locator.name ?? null, code: null, zip: null, resolvedByName: false };
 	}
 	const pick = await resolveByName(
 		value,
@@ -85,7 +97,14 @@ export async function resolveLocality(
 		);
 	}
 	const raw = pick.candidate;
-	return { id: raw.id, name: raw.n, code: raw.sym, zip: localityZipOf(raw), resolvedByName: true, raw };
+	return {
+		id: raw.id,
+		name: raw.n,
+		code: raw.sym,
+		zip: localityZipOf(raw),
+		resolvedByName: true,
+		raw,
+	};
 }
 
 /**
@@ -95,13 +114,13 @@ export async function resolveLocality(
 export async function resolveStreet(
 	ctx: Context,
 	localityId: string,
-	locator: { mode: string; value: string },
+	locator: LocatorInput,
 	opts: ResolveOptions,
 ): Promise<ResolvedStreet | null> {
 	const { mode, value } = locator;
 	if (mode !== 'name') {
 		assertId(ctx, 'Street', value, opts.itemIndex);
-		return { id: value, name: null, code: null };
+		return { id: value, name: locator.name ?? null, code: null };
 	}
 	const pick = await resolveByName(
 		value,
