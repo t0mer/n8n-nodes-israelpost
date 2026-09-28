@@ -10,20 +10,30 @@ vi.mock('n8n-workflow', async (importOriginal) => {
 
 beforeEach(() => vi.mocked(sleep).mockClear());
 
+type Row = { id: string; n: string; syn: string; cityID?: string };
+const rows = (...names: Parameters<typeof fixture>[0][]) =>
+	names.flatMap((name) => (fixture(name) as { Result: Row[] }).Result);
+const LOCALITIES_HE = rows('cities-telaviv-he', 'cities-locality-zip', 'cities-elad-he');
+const LOCALITIES_EN = rows('cities-tel-en');
+const STREETS = rows('streets-dizengoff', 'streets-herzl');
+
+/** Literal prefix match on the name or synonym, ignoring case, like the live API. */
+const matching = (list: Row[], prefix: string) => {
+	const wanted = prefix.toLowerCase();
+	return list.filter(
+		(row) => row.n.toLowerCase().startsWith(wanted) || row.syn.toLowerCase().startsWith(wanted),
+	);
+};
+const envelope = (Result: unknown) => ok({ ReturnCode: 0, ErrorMessage: null, Result });
+
 /** Serves the Phase 0 fixtures the way the live API answered them. */
 const router: Router = (path, qs): FakeResponse => {
 	const text = String(qs.CityStartsWith ?? qs.StartsWith ?? '');
 	switch (path) {
 		case '/getcities-lang':
-			if (text.startsWith('תל א')) return ok(fixture('cities-telaviv-he'));
-			if (text.startsWith('תל ע')) return ok(fixture('cities-locality-zip'));
-			if (text.startsWith('אלע')) return ok(fixture('cities-elad-he'));
-			if (text.toLowerCase().startsWith('tel')) return ok(fixture('cities-tel-en'));
-			return ok(fixture('cities-nomatch'));
+			return envelope(matching(qs.Lang === 'en' ? LOCALITIES_EN : LOCALITIES_HE, text));
 		case '/GetStreets-lang':
-			if (text.startsWith('דיזנגוף')) return ok(fixture('streets-dizengoff'));
-			if (text.startsWith('הרצל')) return ok(fixture('streets-herzl'));
-			return ok(fixture('streets-bad-cityid'));
+			return envelope(matching(STREETS, text).filter((row) => row.cityID === qs.CityID));
 		case '/SearchZip-Lang':
 			if (qs.POB) return ok(fixture(qs.POB === '100' ? 'zip-pob-elad-100' : 'zip-pob-notfound'));
 			if (!qs.StreetID) {
@@ -121,14 +131,14 @@ describe('Zip Code › Find by Address', () => {
 	});
 
 	it('lists the candidates of an ambiguous street', async () => {
-		await expect(run(address({ street: byName('דיזנגוף ס') }))).rejects.toThrow(
-			'Street "דיזנגוף ס" is ambiguous. Candidates: דיזנגוף (id 91992), דיזנגוף סנטר (id 113842)',
+		await expect(run(address({ street: byName('דיזנגו') }))).rejects.toThrow(
+			'Street "דיזנגו" is ambiguous. Candidates: דיזנגוף (id 91992), דיזנגוף סנטר (id 113842)',
 		);
 	});
 
 	it('takes the first candidate with Name Matching = First Result', async () => {
 		const { json } = await run(
-			address({ street: byName('דיזנגוף ס'), options: { nameMatching: 'first' } }),
+			address({ street: byName('דיזנגו'), options: { nameMatching: 'first' } }),
 		);
 		expect(json[0]).toMatchObject({ zip: '6439612', street: { id: '91992' } });
 	});
@@ -198,10 +208,7 @@ describe('Zip Code › Find by Address', () => {
 	});
 
 	it('reuses an ambiguous result instead of asking again', async () => {
-		const params = [
-			address({ street: byName('דיזנגוף ס') }),
-			address({ street: byName('דיזנגוף ס') }),
-		];
+		const params = [address({ street: byName('דיזנגו') }), address({ street: byName('דיזנגו') })];
 		const { json, calls } = await run(params, { continueOnFail: true });
 		expect(json.every((j) => String(j.error).includes('ambiguous'))).toBe(true);
 		expect(calls.filter((c) => c.path === '/GetStreets-lang')).toHaveLength(1);

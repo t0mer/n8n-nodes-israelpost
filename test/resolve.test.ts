@@ -4,6 +4,7 @@ import {
 	dedupeById,
 	normalizeName,
 	pickCandidate,
+	prefixQueries,
 	resolveByName,
 } from '../nodes/IsraelPost/resolve';
 import type { ApiLocality, ApiStreet, Candidate } from '../nodes/IsraelPost/types';
@@ -94,23 +95,73 @@ describe('dedupeById', () => {
 	});
 });
 
+describe('prefixQueries', () => {
+	it('queries as typed, then normalized, then the first typed word', () => {
+		expect(prefixQueries(' תל-אביב  יפו ')).toEqual([
+			{ prefix: 'תל-אביב יפו', fallback: false },
+			{ prefix: 'תל אביב יפו', fallback: false },
+			{ prefix: 'תל-אביב', fallback: true },
+		]);
+	});
+
+	it('keeps quote marks in the typed query', () => {
+		expect(prefixQueries('ביה"ס שער').map((q) => q.prefix)).toEqual([
+			'ביה"ס שער',
+			'ביהס שער',
+			'ביה"ס',
+		]);
+	});
+
+	it('drops duplicate queries', () => {
+		expect(prefixQueries('אלעד')).toEqual([{ prefix: 'אלעד', fallback: false }]);
+	});
+});
+
 describe('resolveByName', () => {
-	it('queries the normalized text', async () => {
+	it('queries the name as typed first', async () => {
 		const search = vi.fn(async () => result<ApiLocality[]>('cities-telaviv-he'));
 		const pick = await resolveByName('תל  אביב - יפו', search, 'exact');
-		expect(search).toHaveBeenCalledWith('תל אביב יפו');
+		expect(search).toHaveBeenCalledWith('תל אביב - יפו');
 		expect(search).toHaveBeenCalledTimes(1);
 		expect(pick.status).toBe('found');
 	});
 
-	it('retries once with the first word when nothing matches', async () => {
-		const search = vi
-			.fn<(prefix: string) => Promise<Candidate[]>>()
-			.mockResolvedValueOnce([])
-			.mockResolvedValueOnce([c('1', 'תל אביב - יפו')]);
-		const pick = await resolveByName('תל אביב העיר', search, 'exact');
-		expect(search.mock.calls.map((call) => call[0])).toEqual(['תל אביב העיר', 'תל']);
+	it('finds names with quote marks', async () => {
+		const school = c('1559', 'ביה"ס שער');
+		const search = vi.fn(async (prefix: string) => (prefix.startsWith('ביה"ס') ? [school] : []));
+		expect(await resolveByName('ביה"ס שער', search, 'exact')).toEqual({
+			status: 'found',
+			candidate: school,
+		});
+	});
+
+	it('tries the normalized name when the typed one misses', async () => {
+		const search = vi.fn(async (prefix: string) =>
+			prefix === 'תל אביב יפו' ? [c('1212', 'תל אביב - יפו', 'תל אביב יפו')] : [],
+		);
+		const pick = await resolveByName('תל-אביב יפו', search, 'exact');
+		expect(search.mock.calls.map((call) => call[0])).toEqual(['תל-אביב יפו', 'תל אביב יפו']);
+		expect(pick).toMatchObject({ status: 'found', candidate: { id: '1212' } });
+	});
+
+	it('falls back to the first word and accepts an exact match there', async () => {
+		const search = vi.fn(async (prefix: string) =>
+			prefix === 'הרצל' ? [c('1', 'הרצל'), c('2', 'הרצליה')] : [],
+		);
+		const pick = await resolveByName('הרצל  ', search, 'exact');
 		expect(pick).toMatchObject({ status: 'found', candidate: { id: '1' } });
+	});
+
+	it('does not silently accept a single fallback candidate in exact mode', async () => {
+		const search = vi.fn(async (prefix: string) => (prefix === 'בן' ? [c('7', 'בן גוריון')] : []));
+		expect(await resolveByName('בן יהודא', search, 'exact')).toEqual({
+			status: 'ambiguous',
+			candidates: [c('7', 'בן גוריון')],
+		});
+		expect(await resolveByName('בן יהודא', search, 'first')).toMatchObject({
+			status: 'found',
+			candidate: { id: '7' },
+		});
 	});
 
 	it('does not retry a single word', async () => {
@@ -136,6 +187,12 @@ describe('ambiguousMessage', () => {
 	it('lists candidates with ids', () => {
 		expect(ambiguousMessage('Street', 'הרצל', [c('1', 'הרצל'), c('2', 'רוזנבלום הרצל')])).toBe(
 			'Street "הרצל" is ambiguous. Candidates: הרצל (id 1), רוזנבלום הרצל (id 2)',
+		);
+	});
+
+	it('says "has no exact match" for a single candidate', () => {
+		expect(ambiguousMessage('Street', 'בן יהודא', [c('7', 'בן גוריון')])).toBe(
+			'Street "בן יהודא" has no exact match. Candidates: בן גוריון (id 7)',
 		);
 	});
 
