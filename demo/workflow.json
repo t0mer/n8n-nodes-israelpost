@@ -1,0 +1,123 @@
+{
+	"name": "Israel Post demo: zip codes for addresses and a PO box",
+	"nodes": [
+		{
+			"id": "a1",
+			"name": "Start",
+			"type": "n8n-nodes-base.manualTrigger",
+			"typeVersion": 1,
+			"position": [
+				0,
+				0
+			],
+			"parameters": {}
+		},
+		{
+			"id": "a2",
+			"name": "Addresses",
+			"type": "n8n-nodes-base.code",
+			"typeVersion": 2,
+			"position": [
+				240,
+				-100
+			],
+			"parameters": {
+				"jsCode": "// Five addresses to look up. The last street name is deliberately ambiguous.\nreturn [\n  { json: { city: 'תל אביב - יפו', street: 'דיזנגוף', house: '100' } },\n  { json: { city: 'ירושלים', street: 'יפו', house: '97' } },\n  { json: { city: 'חיפה', street: 'הרצל', house: '20' } },\n  { json: { city: 'תל עדשים', street: '', house: '' } },\n  { json: { city: 'תל אביב - יפו', street: 'דיזנגו', house: '1' } },\n];"
+			}
+		},
+		{
+			"id": "a3",
+			"name": "Find Zip by Address",
+			"type": "@t0mer/n8n-nodes-israelpost.israelPost",
+			"typeVersion": 1,
+			"position": [
+				480,
+				-100
+			],
+			"onError": "continueRegularOutput",
+			"parameters": {
+				"resource": "zipCode",
+				"operation": "findByAddress",
+				"locality": {
+					"__rl": true,
+					"mode": "name",
+					"value": "={{ $json.city }}"
+				},
+				"street": {
+					"__rl": true,
+					"mode": "name",
+					"value": "={{ $json.street }}"
+				},
+				"houseNumber": "={{ $json.house }}",
+				"options": {
+					"outputField": "postal"
+				}
+			},
+			"credentials": {
+				"israelPostApi": {
+					"id": "",
+					"name": "Israel Post account"
+				}
+			}
+		},
+		{
+			"id": "a4",
+			"name": "Find Zip by PO Box",
+			"type": "@t0mer/n8n-nodes-israelpost.israelPost",
+			"typeVersion": 1,
+			"position": [
+				240,
+				120
+			],
+			"parameters": {
+				"resource": "zipCode",
+				"operation": "findByPoBox",
+				"locality": {
+					"__rl": true,
+					"mode": "name",
+					"value": "אלעד"
+				},
+				"poBox": "100",
+				"options": {}
+			},
+			"credentials": {
+				"israelPostApi": {
+					"id": "",
+					"name": "Israel Post account"
+				}
+			}
+		}
+	],
+	"connections": {
+		"Start": {
+			"main": [
+				[
+					{
+						"node": "Addresses",
+						"type": "main",
+						"index": 0
+					},
+					{
+						"node": "Find Zip by PO Box",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		},
+		"Addresses": {
+			"main": [
+				[
+					{
+						"node": "Find Zip by Address",
+						"type": "main",
+						"index": 0
+					}
+				]
+			]
+		}
+	},
+	"settings": {
+		"executionOrder": "v1"
+	}
+}
