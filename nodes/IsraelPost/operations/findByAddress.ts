@@ -2,13 +2,20 @@ import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { searchZip, zipOf } from '../api';
 import { localityOutput, notFound, readLookupOptions, streetOutput } from './common';
-import { readLocator, resolveLocality, resolveStreet, type ResolvedLocality } from './lookup';
+import {
+	readLocator,
+	resolveLocality,
+	resolveStreet,
+	type ResolvedLocality,
+	type LookupCache,
+} from './lookup';
 
 const HOUSE_PATTERN = /^\d{1,4}$/;
 
 export async function findByAddress(
 	this: IExecuteFunctions,
 	itemIndex: number,
+	cache: LookupCache,
 ): Promise<IDataObject[]> {
 	const options = readLookupOptions(this, itemIndex);
 	const { lang, matching } = options;
@@ -25,7 +32,7 @@ export async function findByAddress(
 		);
 	}
 
-	const locality = await resolveLocality(this, localityInput, { lang, matching, itemIndex });
+	const locality = await resolveLocality(this, localityInput, { lang, matching, itemIndex, cache });
 	if (!locality) {
 		return [
 			notFound(this, itemIndex, options, `Locality "${localityInput.value}" was not found`, {
@@ -62,6 +69,7 @@ export async function findByAddress(
 		lang,
 		matching,
 		itemIndex,
+		cache,
 	});
 	if (!street) {
 		const localityName = locality.name ?? locality.id;

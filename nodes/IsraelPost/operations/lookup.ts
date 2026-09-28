@@ -5,8 +5,8 @@ import type {
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { getLocalities, getStreets } from '../api';
-import { ambiguousMessage, resolveByName } from '../resolve';
-import type { ApiLocality, ApiStreet, Language, NameMatching } from '../types';
+import { ambiguousMessage, resolveByName, type PickResult } from '../resolve';
+import type { ApiLocality, ApiStreet, Candidate, Language, NameMatching } from '../types';
 import { localityZipOf } from './mappers';
 
 type Context = IExecuteFunctions | ILoadOptionsFunctions;
@@ -33,6 +33,32 @@ export interface ResolveOptions {
 	lang: Language;
 	matching: NameMatching;
 	itemIndex?: number;
+	cache?: LookupCache;
+}
+
+/**
+ * Name lookups of one execution, so a batch of addresses in the same city
+ * queries the city once. Holds promises, so a failure (an ambiguous name) is
+ * reused as well.
+ */
+export class LookupCache {
+	readonly localities = new Map<string, Promise<ResolvedLocality | null>>();
+
+	readonly streets = new Map<string, Promise<ResolvedStreet | null>>();
+}
+
+async function cached<T>(
+	map: Map<string, Promise<T>> | undefined,
+	key: string,
+	load: () => Promise<T>,
+): Promise<T> {
+	if (!map) return await load();
+	let entry = map.get(key);
+	if (!entry) {
+		entry = load();
+		map.set(key, entry);
+	}
+	return await entry;
 }
 
 export interface LocatorInput {
@@ -64,6 +90,11 @@ function assertId(ctx: Context, what: string, id: string, itemIndex?: number) {
 	}
 }
 
+function ambiguous(ctx: Context, kind: string, value: string, pick: PickResult<Candidate>) {
+	if (pick.status !== 'ambiguous') return;
+	throw new NodeOperationError(ctx.getNode(), ambiguousMessage(kind, value, pick.candidates));
+}
+
 /**
  * Resolves the locality picker to an Israel Post locality.
  * Returns null when a name matches nothing; throws when it is ambiguous.
@@ -83,28 +114,28 @@ export async function resolveLocality(
 		assertId(ctx, 'Locality', value, opts.itemIndex);
 		return { id: value, name: locator.name ?? null, code: null, zip: null, resolvedByName: false };
 	}
-	const pick = await resolveByName(
-		value,
-		async (prefix) => await getLocalities(ctx, prefix, opts.lang, opts.itemIndex),
-		opts.matching,
+	return await cached(
+		opts.cache?.localities,
+		`${opts.lang}|${opts.matching}|${value}`,
+		async () => {
+			const pick = await resolveByName(
+				value,
+				async (prefix) => await getLocalities(ctx, prefix, opts.lang, opts.itemIndex),
+				opts.matching,
+			);
+			ambiguous(ctx, 'Locality', value, pick);
+			if (pick.status !== 'found') return null;
+			const raw = pick.candidate;
+			return {
+				id: raw.id,
+				name: raw.n,
+				code: raw.sym,
+				zip: localityZipOf(raw),
+				resolvedByName: true,
+				raw,
+			};
+		},
 	);
-	if (pick.status === 'notFound') return null;
-	if (pick.status === 'ambiguous') {
-		throw new NodeOperationError(
-			ctx.getNode(),
-			ambiguousMessage('Locality', value, pick.candidates),
-			{ itemIndex: opts.itemIndex },
-		);
-	}
-	const raw = pick.candidate;
-	return {
-		id: raw.id,
-		name: raw.n,
-		code: raw.sym,
-		zip: localityZipOf(raw),
-		resolvedByName: true,
-		raw,
-	};
 }
 
 /**
@@ -122,21 +153,16 @@ export async function resolveStreet(
 		assertId(ctx, 'Street', value, opts.itemIndex);
 		return { id: value, name: locator.name ?? null, code: null };
 	}
-	const pick = await resolveByName(
-		value,
-		async (prefix) => await getStreets(ctx, localityId, prefix, opts.lang, opts.itemIndex),
-		opts.matching,
-	);
-	if (pick.status === 'notFound') return null;
-	if (pick.status === 'ambiguous') {
-		throw new NodeOperationError(
-			ctx.getNode(),
-			ambiguousMessage('Street', value, pick.candidates),
-			{
-				itemIndex: opts.itemIndex,
-			},
+	const key = `${opts.lang}|${opts.matching}|${localityId}|${value}`;
+	return await cached(opts.cache?.streets, key, async () => {
+		const pick = await resolveByName(
+			value,
+			async (prefix) => await getStreets(ctx, localityId, prefix, opts.lang, opts.itemIndex),
+			opts.matching,
 		);
-	}
-	const raw = pick.candidate;
-	return { id: raw.id, name: raw.n, code: raw.sym, raw };
+		ambiguous(ctx, 'Street', value, pick);
+		if (pick.status !== 'found') return null;
+		const raw = pick.candidate;
+		return { id: raw.id, name: raw.n, code: raw.sym, raw };
+	});
 }

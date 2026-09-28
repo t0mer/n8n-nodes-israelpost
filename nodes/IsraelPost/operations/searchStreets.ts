@@ -3,12 +3,13 @@ import { NodeOperationError } from 'n8n-workflow';
 import { getStreets } from '../api';
 import { dedupeById } from '../resolve';
 import type { Language } from '../types';
-import { readLocator, resolveLocality } from './lookup';
+import { readLocator, resolveLocality, type LookupCache } from './lookup';
 import { mapStreet } from './mappers';
 
 export async function searchStreets(
 	this: IExecuteFunctions,
 	itemIndex: number,
+	cache: LookupCache,
 ): Promise<IDataObject[]> {
 	const localityInput = readLocator(this.getNodeParameter('locality', itemIndex));
 	const searchText = String(this.getNodeParameter('searchText', itemIndex)).trim();
@@ -23,6 +24,7 @@ export async function searchStreets(
 		lang,
 		matching: 'exact',
 		itemIndex,
+		cache,
 	});
 	if (!locality) {
 		throw new NodeOperationError(

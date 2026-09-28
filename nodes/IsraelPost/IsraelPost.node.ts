@@ -15,6 +15,7 @@ import { findByAddress } from './operations/findByAddress';
 import { findByPoBox } from './operations/findByPoBox';
 import { searchLocalities } from './operations/searchLocalities';
 import { searchStreets } from './operations/searchStreets';
+import { LookupCache } from './operations/lookup';
 import type { Operation } from './operations/types';
 
 const OPERATIONS: Record<string, Operation> = {
@@ -59,6 +60,7 @@ export class IsraelPost implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnData: INodeExecutionData[] = [];
+		const cache = new LookupCache();
 
 		for (let i = 0; i < items.length; i++) {
 			let failure: Error | undefined;
@@ -72,7 +74,7 @@ export class IsraelPost implements INodeType {
 						`The operation "${operation}" is not supported for resource "${resource}"`,
 					);
 				}
-				const rows: IDataObject[] = await run.call(this, i);
+				const rows: IDataObject[] = await run.call(this, i, cache);
 				for (const json of rows) returnData.push({ json, pairedItem: { item: i } });
 			} catch (error) {
 				failure = error as Error;
