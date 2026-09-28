@@ -3,12 +3,36 @@
 //   npm run smoke
 //   ISRAELPOST_KEY=<key> ISRAELPOST_BASE_URL=<url> npm run smoke   # override the defaults
 //
+// The key can also come from ISRAELPOST_KEY in a gitignored .env file.
+//
 // Runs the Phase 0 core lookups (8 calls, 600 ms apart) and asserts the expected results.
 
+import { readFileSync } from 'node:fs';
+
+function readDotEnv() {
+	const env = {};
+	let text = '';
+	try {
+		text = readFileSync(new URL('../.env', import.meta.url), 'utf8');
+	} catch {
+		return env;
+	}
+	for (const line of text.split('\n')) {
+		const match = line.match(/^\s*([A-Z_]+)\s*=\s*(.*?)\s*$/);
+		if (match) env[match[1]] = match[2].replace(/^["']|["']$/g, '');
+	}
+	return env;
+}
+
+const dotEnv = readDotEnv();
 const BASE_URL = (
 	process.env.ISRAELPOST_BASE_URL || 'https://apimftprd.israelpost.co.il/mypost-zip'
 ).replace(/\/+$/, '');
-const KEY = process.env.ISRAELPOST_KEY || '5ccb5b137e7444d885be752eda7f767a';
+const KEY =
+	process.env.ISRAELPOST_KEY || dotEnv.ISRAELPOST_KEY || '5ccb5b137e7444d885be752eda7f767a';
+console.log(
+	`Key source: ${process.env.ISRAELPOST_KEY || dotEnv.ISRAELPOST_KEY ? 'environment/.env' : 'public default'}`,
+);
 const PAUSE_MS = 600;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
