@@ -123,3 +123,57 @@ export function streetLocator(show: Show): INodeProperties {
 		],
 	};
 }
+
+const OPTION_DEFINITIONS: Record<string, INodeProperties> = {
+	language: languageOption,
+	nameMatching: {
+		displayName: 'Name Matching',
+		name: 'nameMatching',
+		type: 'options',
+		options: [
+			{
+				name: 'Exact',
+				value: 'exact',
+				description:
+					'Use the exact name match, else the only result, else fail and list the candidates',
+			},
+			{
+				name: 'First Result',
+				value: 'first',
+				description: 'Use the exact name match, else the first result',
+			},
+		],
+		default: 'exact',
+		description: 'How a locality or street name picks one Israel Post entry',
+	},
+	onNotFound: {
+		displayName: 'On Not Found',
+		name: 'onNotFound',
+		type: 'options',
+		options: [
+			{ name: 'Error', value: 'error', description: 'Fail the item' },
+			{
+				name: 'Return Empty',
+				value: 'empty',
+				description: 'Output the item with found set to false and zip set to null',
+			},
+		],
+		default: 'error',
+		description: 'What to do when there is no zip code for the input',
+	},
+};
+
+/** The Options collection with the given options, kept in alphabetical order. */
+export function optionsCollection(show: Show, names: string[]): INodeProperties {
+	return {
+		displayName: 'Options',
+		name: 'options',
+		type: 'collection',
+		placeholder: 'Add Option',
+		default: {},
+		displayOptions: { show },
+		options: names
+			.map((name) => OPTION_DEFINITIONS[name])
+			.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+	};
+}

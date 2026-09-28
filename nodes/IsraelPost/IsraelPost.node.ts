@@ -9,13 +9,16 @@ import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workf
 import { operationProperties, resourceProperty } from './descriptions/resources';
 import { localityProperties } from './descriptions/locality';
 import { streetProperties } from './descriptions/street';
+import { zipCodeProperties } from './descriptions/zipCode';
 import * as listSearch from './listSearch';
+import { findByAddress } from './operations/findByAddress';
 import { searchLocalities } from './operations/searchLocalities';
 import { searchStreets } from './operations/searchStreets';
 import type { Operation } from './operations/types';
 
 const OPERATIONS: Record<string, Operation> = {
 	'locality.search': searchLocalities,
+	'zipCode.findByAddress': findByAddress,
 	'street.search': searchStreets,
 };
 
@@ -40,6 +43,7 @@ export class IsraelPost implements INodeType {
 			...operationProperties,
 			...localityProperties,
 			...streetProperties,
+			...zipCodeProperties,
 		],
 	};
 
