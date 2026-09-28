@@ -5,7 +5,7 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 } from 'n8n-workflow';
-import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
+import { NodeApiError, NodeConnectionTypes, NodeOperationError, sleep } from 'n8n-workflow';
 import { operationProperties, resourceProperty } from './descriptions/resources';
 import { localityProperties } from './descriptions/locality';
 import { streetProperties } from './descriptions/street';
@@ -74,8 +74,14 @@ export class IsraelPost implements INodeType {
 						`The operation "${operation}" is not supported for resource "${resource}"`,
 					);
 				}
+				const delayMs = Number(this.getNodeParameter('options.delayMs', i, 0)) || 0;
+				if (i > 0 && delayMs > 0) await sleep(delayMs);
 				const rows: IDataObject[] = await run.call(this, i, cache);
-				for (const json of rows) returnData.push({ json, pairedItem: { item: i } });
+				const outputField = String(this.getNodeParameter('options.outputField', i, '')).trim();
+				for (const row of rows) {
+					const json = outputField ? { ...items[i].json, [outputField]: row } : row;
+					returnData.push({ json, pairedItem: { item: i } });
+				}
 			} catch (error) {
 				failure = error as Error;
 			}

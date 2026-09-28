@@ -7,6 +7,7 @@ export interface LookupOptions {
 	lang: Language;
 	matching: NameMatching;
 	onNotFound: 'error' | 'empty';
+	includeRaw: boolean;
 }
 
 export function readLookupOptions(ctx: IExecuteFunctions, itemIndex: number): LookupOptions {
@@ -15,6 +16,7 @@ export function readLookupOptions(ctx: IExecuteFunctions, itemIndex: number): Lo
 		lang: options.language === 'en' ? 'en' : 'he',
 		matching: options.nameMatching === 'first' ? 'first' : 'exact',
 		onNotFound: options.onNotFound === 'empty' ? 'empty' : 'error',
+		includeRaw: options.includeRaw === true,
 	};
 }
 

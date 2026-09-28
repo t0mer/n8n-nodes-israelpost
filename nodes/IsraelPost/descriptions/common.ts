@@ -125,6 +125,22 @@ export function streetLocator(show: Show): INodeProperties {
 }
 
 const OPTION_DEFINITIONS: Record<string, INodeProperties> = {
+	delayMs: {
+		displayName: 'Delay Between Items (Ms)',
+		name: 'delayMs',
+		type: 'number',
+		typeOptions: { minValue: 0 },
+		default: 0,
+		description:
+			'Milliseconds to wait before each item after the first, to keep big batches polite',
+	},
+	includeRaw: {
+		displayName: 'Include Raw Response',
+		name: 'includeRaw',
+		type: 'boolean',
+		default: false,
+		description: 'Whether to add the unmodified Israel Post results under raw',
+	},
 	language: languageOption,
 	nameMatching: {
 		displayName: 'Name Matching',
@@ -161,7 +177,26 @@ const OPTION_DEFINITIONS: Record<string, INodeProperties> = {
 		default: 'error',
 		description: 'What to do when there is no zip code for the input',
 	},
+	outputField: {
+		displayName: 'Put Output in Field',
+		name: 'outputField',
+		type: 'string',
+		default: '',
+		placeholder: 'e.g. postal',
+		description:
+			'Name of a field to put the result in, keeping the input item. Leave empty to replace the input item with the result.',
+	},
 };
+
+/** Options shared by the zip code lookups. */
+export const LOOKUP_OPTIONS = [
+	'delayMs',
+	'includeRaw',
+	'language',
+	'nameMatching',
+	'onNotFound',
+	'outputField',
+];
 
 /** The Options collection with the given options, kept in alphabetical order. */
 export function optionsCollection(show: Show, names: string[]): INodeProperties {

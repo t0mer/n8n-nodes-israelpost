@@ -1,7 +1,13 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 import { searchZip, zipOf } from '../api';
-import { localityOutput, notFound, readLookupOptions, streetOutput } from './common';
+import {
+	localityOutput,
+	notFound,
+	readLookupOptions,
+	streetOutput,
+	type LookupOptions,
+} from './common';
 import {
 	readLocator,
 	resolveLocality,
@@ -18,6 +24,18 @@ export async function findByAddress(
 	cache: LookupCache,
 ): Promise<IDataObject[]> {
 	const options = readLookupOptions(this, itemIndex);
+	const raw: IDataObject = {};
+	const row = await lookupAddress.call(this, itemIndex, cache, options, raw);
+	return [options.includeRaw ? { ...row, raw } : row];
+}
+
+async function lookupAddress(
+	this: IExecuteFunctions,
+	itemIndex: number,
+	cache: LookupCache,
+	options: LookupOptions,
+	raw: IDataObject,
+): Promise<IDataObject> {
 	const { lang, matching } = options;
 	const localityInput = readLocator(this.getNodeParameter('locality', itemIndex));
 	const streetInput = readLocator(this.getNodeParameter('street', itemIndex, ''));
@@ -33,16 +51,15 @@ export async function findByAddress(
 	}
 
 	const locality = await resolveLocality(this, localityInput, { lang, matching, itemIndex, cache });
+	raw.locality = locality?.raw ?? null;
 	if (!locality) {
-		return [
-			notFound(this, itemIndex, options, `Locality "${localityInput.value}" was not found`, {
-				source: 'address',
-				locality: null,
-				street: null,
-				house,
-				entrance,
-			}),
-		];
+		return notFound(this, itemIndex, options, `Locality "${localityInput.value}" was not found`, {
+			source: 'address',
+			locality: null,
+			street: null,
+			house,
+			entrance,
+		});
 	}
 
 	const localityRow = (zip: string, message: string | null, note?: string): IDataObject => ({
@@ -58,8 +75,8 @@ export async function findByAddress(
 	});
 
 	if (!streetInput.value) {
-		const zip = await localityZip.call(this, locality, lang, itemIndex);
-		if (zip) return [localityRow(zip.zip, zip.message)];
+		const zip = await localityZip.call(this, locality, lang, itemIndex, raw);
+		if (zip) return localityRow(zip.zip, zip.message);
 		throw fail(
 			`Locality "${locality.name ?? locality.id}" has no single zip code, a street is required`,
 		);
@@ -71,26 +88,23 @@ export async function findByAddress(
 		itemIndex,
 		cache,
 	});
+	raw.street = street?.raw ?? null;
 	if (!street) {
 		const localityName = locality.name ?? locality.id;
 		if (locality.zip) {
-			return [
-				localityRow(
-					locality.zip,
-					null,
-					`Street "${streetInput.value}" was not found in ${localityName}; returned the locality-wide zip code`,
-				),
-			];
+			return localityRow(
+				locality.zip,
+				null,
+				`Street "${streetInput.value}" was not found in ${localityName}; returned the locality-wide zip code`,
+			);
 		}
-		return [
-			notFound(
-				this,
-				itemIndex,
-				options,
-				`Street "${streetInput.value}" was not found in locality "${localityName}"`,
-				{ source: 'address', locality: localityOutput(locality), street: null, house, entrance },
-			),
-		];
+		return notFound(
+			this,
+			itemIndex,
+			options,
+			`Street "${streetInput.value}" was not found in locality "${localityName}"`,
+			{ source: 'address', locality: localityOutput(locality), street: null, house, entrance },
+		);
 	}
 
 	const result = await searchZip(
@@ -98,6 +112,7 @@ export async function findByAddress(
 		{ localityId: locality.id, streetId: street.id, house, entrance, lang },
 		itemIndex,
 	);
+	raw.zip = result;
 	const row: IDataObject = {
 		source: 'address',
 		locality: localityOutput(locality),
@@ -106,13 +121,13 @@ export async function findByAddress(
 		entrance,
 	};
 	const zip = zipOf(result);
-	if (zip) return [{ found: true, zip, ...row, message: result.messageResult }];
+	if (zip) return { found: true, zip, ...row, message: result.messageResult };
 
 	const address = `${street.name ?? street.id} ${house}, ${locality.name ?? locality.id}`;
 	const hint = entrance
 		? ' Israel Post returns no zip code for an entrance the building does not have: try without Entrance.'
 		: '';
-	return [notFound(this, itemIndex, options, `No zip code found for ${address}.${hint}`, row)];
+	return notFound(this, itemIndex, options, `No zip code found for ${address}.${hint}`, row);
 }
 
 /** The locality-wide zip: from the locality row when known, else asked from the API. */
@@ -121,9 +136,11 @@ async function localityZip(
 	locality: ResolvedLocality,
 	lang: 'he' | 'en',
 	itemIndex: number,
+	raw: IDataObject,
 ): Promise<{ zip: string; message: string | null } | null> {
 	if (locality.resolvedByName) return locality.zip ? { zip: locality.zip, message: null } : null;
 	const result = await searchZip(this, { localityId: locality.id, lang }, itemIndex);
+	raw.zip = result;
 	const zip = zipOf(result);
 	return zip ? { zip, message: result.messageResult } : null;
 }

@@ -1,5 +1,5 @@
 import type { INodeProperties } from 'n8n-workflow';
-import { localityLocator, optionsCollection, streetLocator } from './common';
+import { LOOKUP_OPTIONS, localityLocator, optionsCollection, streetLocator } from './common';
 
 const byAddress = { resource: ['zipCode'], operation: ['findByAddress'] };
 const byPoBox = { resource: ['zipCode'], operation: ['findByPoBox'] };
@@ -27,7 +27,7 @@ export const zipCodeProperties: INodeProperties[] = [
 		hint: 'Needed for some buildings in divided localities. Leave empty otherwise: an entrance the building does not have returns no zip code.',
 		displayOptions: { show: byAddress },
 	},
-	optionsCollection(byAddress, ['language', 'nameMatching', 'onNotFound']),
+	optionsCollection(byAddress, LOOKUP_OPTIONS),
 	localityLocator(byPoBox),
 	{
 		displayName: 'PO Box Number',
@@ -39,5 +39,5 @@ export const zipCodeProperties: INodeProperties[] = [
 		description: 'PO box (ת.ד.) number, digits only',
 		displayOptions: { show: byPoBox },
 	},
-	optionsCollection(byPoBox, ['language', 'nameMatching', 'onNotFound']),
+	optionsCollection(byPoBox, LOOKUP_OPTIONS),
 ];
