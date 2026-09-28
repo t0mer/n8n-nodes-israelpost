@@ -33,7 +33,7 @@ export function dedupeById<T extends Candidate>(candidates: T[]): T[] {
 	});
 }
 
-export type Pick<T> =
+export type PickResult<T> =
 	| { status: 'found'; candidate: T }
 	| { status: 'ambiguous'; candidates: T[] }
 	| { status: 'notFound' };
@@ -47,7 +47,7 @@ export function pickCandidate<T extends Candidate>(
 	text: string,
 	candidates: T[],
 	mode: NameMatching,
-): Pick<T> {
+): PickResult<T> {
 	const unique = dedupeById(candidates);
 	if (unique.length === 0) return { status: 'notFound' };
 	const wanted = normalizeName(text);
@@ -68,7 +68,7 @@ export async function resolveByName<T extends Candidate>(
 	text: string,
 	search: (prefix: string) => Promise<T[]>,
 	mode: NameMatching,
-): Promise<Pick<T>> {
+): Promise<PickResult<T>> {
 	const normalized = normalizeName(text);
 	if (!normalized) return { status: 'notFound' };
 	let candidates = await search(normalized);
