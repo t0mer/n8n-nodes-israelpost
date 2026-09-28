@@ -9,16 +9,19 @@ import { NodeApiError, NodeConnectionTypes, NodeOperationError, sleep } from 'n8
 import { operationProperties, resourceProperty } from './descriptions/resources';
 import { localityProperties } from './descriptions/locality';
 import { streetProperties } from './descriptions/street';
+import { addressProperties } from './descriptions/address';
 import { zipCodeProperties } from './descriptions/zipCode';
 import * as listSearch from './listSearch';
 import { findByAddress } from './operations/findByAddress';
 import { findByPoBox } from './operations/findByPoBox';
+import { findByZip } from './operations/findByZip';
 import { searchLocalities } from './operations/searchLocalities';
 import { searchStreets } from './operations/searchStreets';
 import { LookupCache } from './operations/lookup';
 import type { Operation } from './operations/types';
 
 const OPERATIONS: Record<string, Operation> = {
+	'address.findByZip': findByZip,
 	'locality.search': searchLocalities,
 	'zipCode.findByAddress': findByAddress,
 	'zipCode.findByPoBox': findByPoBox,
@@ -47,6 +50,7 @@ export class IsraelPost implements INodeType {
 			...localityProperties,
 			...streetProperties,
 			...zipCodeProperties,
+			...addressProperties,
 		],
 	};
 
