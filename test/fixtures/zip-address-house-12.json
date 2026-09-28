@@ -1,16 +1,16 @@
 {
-  "ReturnCode": 0,
-  "ErrorMessage": null,
-  "Result": {
-    "zip": "6407101",
-    "cityid": null,
-    "cityname": null,
-    "streetid": null,
-    "streetname": null,
-    "msgtype": "address",
-    "messageResult": "המיקוד לכתובת הינו: 6407101",
-    "pob": null,
-    "houseNum": null,
-    "entrance": null
-  }
+	"ReturnCode": 0,
+	"ErrorMessage": null,
+	"Result": {
+		"zip": "6407101",
+		"cityid": null,
+		"cityname": null,
+		"streetid": null,
+		"streetname": null,
+		"msgtype": "address",
+		"messageResult": "המיקוד לכתובת הינו: 6407101",
+		"pob": null,
+		"houseNum": null,
+		"entrance": null
+	}
 }

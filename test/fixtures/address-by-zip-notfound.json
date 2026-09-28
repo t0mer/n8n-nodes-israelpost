@@ -1,16 +1,16 @@
 {
-  "ReturnCode": 0,
-  "ErrorMessage": null,
-  "Result": {
-    "zip": null,
-    "cityid": null,
-    "cityname": null,
-    "streetid": null,
-    "streetname": null,
-    "msgtype": "notfound",
-    "messageResult": "לא נמצא מיקוד",
-    "pob": null,
-    "houseNum": null,
-    "entrance": null
-  }
+	"ReturnCode": 0,
+	"ErrorMessage": null,
+	"Result": {
+		"zip": null,
+		"cityid": null,
+		"cityname": null,
+		"streetid": null,
+		"streetname": null,
+		"msgtype": "notfound",
+		"messageResult": "לא נמצא מיקוד",
+		"pob": null,
+		"houseNum": null,
+		"entrance": null
+	}
 }

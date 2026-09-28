@@ -1,16 +1,16 @@
 {
-  "ReturnCode": 0,
-  "ErrorMessage": null,
-  "Result": {
-    "zip": "1931500",
-    "cityid": null,
-    "cityname": null,
-    "streetid": null,
-    "streetname": null,
-    "msgtype": "unitedtown",
-    "messageResult": "המיקוד לכתובת הינו: 1931500",
-    "pob": null,
-    "houseNum": null,
-    "entrance": null
-  }
+	"ReturnCode": 0,
+	"ErrorMessage": null,
+	"Result": {
+		"zip": "1931500",
+		"cityid": null,
+		"cityname": null,
+		"streetid": null,
+		"streetname": null,
+		"msgtype": "unitedtown",
+		"messageResult": "המיקוד לכתובת הינו: 1931500",
+		"pob": null,
+		"houseNum": null,
+		"entrance": null
+	}
 }

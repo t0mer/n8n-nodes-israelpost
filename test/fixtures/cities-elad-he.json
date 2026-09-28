@@ -1,14 +1,14 @@
 {
-  "ReturnCode": 0,
-  "ErrorMessage": null,
-  "Result": [
-    {
-      "id": "929",
-      "sym": "1309",
-      "n": "אלעד",
-      "syn": "אלעד",
-      "divided": true,
-      "zip": "0000000"
-    }
-  ]
+	"ReturnCode": 0,
+	"ErrorMessage": null,
+	"Result": [
+		{
+			"id": "929",
+			"sym": "1309",
+			"n": "אלעד",
+			"syn": "אלעד",
+			"divided": true,
+			"zip": "0000000"
+		}
+	]
 }

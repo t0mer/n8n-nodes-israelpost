@@ -1,14 +1,14 @@
 {
-  "ReturnCode": 0,
-  "ErrorMessage": null,
-  "Result": [
-    {
-      "id": "68",
-      "sym": "0103",
-      "n": "תל עדשים",
-      "syn": "תל עדשים",
-      "divided": false,
-      "zip": "1931500"
-    }
-  ]
+	"ReturnCode": 0,
+	"ErrorMessage": null,
+	"Result": [
+		{
+			"id": "68",
+			"sym": "0103",
+			"n": "תל עדשים",
+			"syn": "תל עדשים",
+			"divided": false,
+			"zip": "1931500"
+		}
+	]
 }

@@ -1,16 +1,16 @@
 {
-  "ReturnCode": 0,
-  "ErrorMessage": null,
-  "Result": {
-    "zip": null,
-    "cityid": "1212",
-    "cityname": "Tel Aviv - Yafo",
-    "streetid": "91992",
-    "streetname": "Meir Dizengoff",
-    "msgtype": "address",
-    "messageResult": "Tel Aviv - Yafo, Meir Dizengoff 100",
-    "pob": null,
-    "houseNum": "100",
-    "entrance": ""
-  }
+	"ReturnCode": 0,
+	"ErrorMessage": null,
+	"Result": {
+		"zip": null,
+		"cityid": "1212",
+		"cityname": "Tel Aviv - Yafo",
+		"streetid": "91992",
+		"streetname": "Meir Dizengoff",
+		"msgtype": "address",
+		"messageResult": "Tel Aviv - Yafo, Meir Dizengoff 100",
+		"pob": null,
+		"houseNum": "100",
+		"entrance": ""
+	}
 }

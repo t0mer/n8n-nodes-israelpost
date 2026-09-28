@@ -1,16 +1,16 @@
 {
-  "ReturnCode": 0,
-  "ErrorMessage": null,
-  "Result": {
-    "zip": null,
-    "cityid": "1212",
-    "cityname": "תל אביב - יפו",
-    "streetid": "91992",
-    "streetname": "דיזנגוף",
-    "msgtype": "address",
-    "messageResult": "תל אביב - יפו, דיזנגוף 100",
-    "pob": null,
-    "houseNum": "100",
-    "entrance": ""
-  }
+	"ReturnCode": 0,
+	"ErrorMessage": null,
+	"Result": {
+		"zip": null,
+		"cityid": "1212",
+		"cityname": "תל אביב - יפו",
+		"streetid": "91992",
+		"streetname": "דיזנגוף",
+		"msgtype": "address",
+		"messageResult": "תל אביב - יפו, דיזנגוף 100",
+		"pob": null,
+		"houseNum": "100",
+		"entrance": ""
+	}
 }
