@@ -1,7 +1,7 @@
 {
   "name": "@t0mer/n8n-nodes-israelpost",
   "version": "2026.9.0",
-  "description": "n8n community node to find Israeli postal codes (mikud) by address or PO box",
+  "description": "n8n community node that finds Israeli zip codes (mikud) by street address or PO box, looks up the address of a zip code, and searches Israel Post localities and streets",
   "license": "MIT",
   "homepage": "https://github.com/t0mer/n8n-nodes-israelpost#readme",
   "bugs": {
@@ -14,12 +14,15 @@
   "keywords": [
     "n8n-community-node-package",
     "n8n",
-    "israelpost",
     "israel-post",
+    "israelpost",
+    "israel",
     "zip-code",
     "postal-code",
     "mikud",
-    "israel"
+    "address-lookup",
+    "address-validation",
+    "postcode"
   ],
   "author": {
     "name": "t0mer",
