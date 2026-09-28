@@ -12,6 +12,7 @@ import { streetProperties } from './descriptions/street';
 import { zipCodeProperties } from './descriptions/zipCode';
 import * as listSearch from './listSearch';
 import { findByAddress } from './operations/findByAddress';
+import { findByPoBox } from './operations/findByPoBox';
 import { searchLocalities } from './operations/searchLocalities';
 import { searchStreets } from './operations/searchStreets';
 import type { Operation } from './operations/types';
@@ -19,6 +20,7 @@ import type { Operation } from './operations/types';
 const OPERATIONS: Record<string, Operation> = {
 	'locality.search': searchLocalities,
 	'zipCode.findByAddress': findByAddress,
+	'zipCode.findByPoBox': findByPoBox,
 	'street.search': searchStreets,
 };
 
