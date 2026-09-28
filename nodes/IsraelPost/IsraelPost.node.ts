@@ -7,9 +7,13 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 import { operationProperties, resourceProperty } from './descriptions/resources';
+import { localityProperties } from './descriptions/locality';
+import { searchLocalities } from './operations/searchLocalities';
 import type { Operation } from './operations/types';
 
-const OPERATIONS: Record<string, Operation> = {};
+const OPERATIONS: Record<string, Operation> = {
+	'locality.search': searchLocalities,
+};
 
 export class IsraelPost implements INodeType {
 	description: INodeTypeDescription = {
@@ -27,7 +31,7 @@ export class IsraelPost implements INodeType {
 		outputs: [NodeConnectionTypes.Main],
 		usableAsTool: true,
 		credentials: [{ name: 'israelPostApi', required: true }],
-		properties: [resourceProperty, ...operationProperties],
+		properties: [resourceProperty, ...operationProperties, ...localityProperties],
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
