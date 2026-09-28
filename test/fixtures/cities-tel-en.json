@@ -1,0 +1,118 @@
+{
+  "ReturnCode": 0,
+  "ErrorMessage": null,
+  "Result": [
+    {
+      "id": "68",
+      "sym": "0103",
+      "n": "Tel Adashim",
+      "syn": "Tel Adashim",
+      "divided": false,
+      "zip": "1931500"
+    },
+    {
+      "id": "1212",
+      "sym": "5000",
+      "n": "Tel Aviv - Yafo",
+      "syn": "Tel Aviv - Yafo",
+      "divided": true,
+      "zip": "0000000"
+    },
+    {
+      "id": "1370",
+      "sym": "0000",
+      "n": "Tel Hashomer",
+      "syn": "Tel Hashomer",
+      "divided": false,
+      "zip": "5262000"
+    },
+    {
+      "id": "1371",
+      "sym": "1707",
+      "n": "Tel Hay",
+      "syn": "Tel Hay",
+      "divided": false,
+      "zip": "1220800"
+    },
+    {
+      "id": "93",
+      "sym": "0154",
+      "n": "Tel Mond",
+      "syn": "Tel Mond",
+      "divided": true,
+      "zip": "0000000"
+    },
+    {
+      "id": "522",
+      "sym": "0719",
+      "n": "Tel Qazir",
+      "syn": "Tel Qazir",
+      "divided": false,
+      "zip": "1516500"
+    },
+    {
+      "id": "729",
+      "sym": "1054",
+      "n": "Tel Sheva",
+      "syn": "Tel Sheva",
+      "divided": false,
+      "zip": "8495000"
+    },
+    {
+      "id": "911",
+      "sym": "1283",
+      "n": "Tel Te'Omim",
+      "syn": "Tel Te'Omim",
+      "divided": false,
+      "zip": "1091800"
+    },
+    {
+      "id": "2857",
+      "sym": "3815",
+      "n": "Tel Tsiyon",
+      "syn": "Tel Tsiyon",
+      "divided": false,
+      "zip": "9083400"
+    },
+    {
+      "id": "191",
+      "sym": "0287",
+      "n": "Tel Yizhaq",
+      "syn": "Tel Yizhaq",
+      "divided": false,
+      "zip": "4580500"
+    },
+    {
+      "id": "54",
+      "sym": "0084",
+      "n": "Tel Yosef",
+      "syn": "Tel Yosef",
+      "divided": false,
+      "zip": "1913200"
+    },
+    {
+      "id": "818",
+      "sym": "1177",
+      "n": "Telalim",
+      "syn": "Telalim",
+      "divided": false,
+      "zip": "8554500"
+    },
+    {
+      "id": "608",
+      "sym": "0814",
+      "n": "Telamim",
+      "syn": "Telamim",
+      "divided": false,
+      "zip": "7931500"
+    },
+    {
+      "id": "1124",
+      "sym": "3719",
+      "n": "Telem",
+      "syn": "Telem",
+      "divided": false,
+      "zip": "9040900"
+    }
+  ]
+}

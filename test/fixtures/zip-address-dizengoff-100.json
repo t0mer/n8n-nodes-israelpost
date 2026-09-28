@@ -1,0 +1,16 @@
+{
+  "ReturnCode": 0,
+  "ErrorMessage": null,
+  "Result": {
+    "zip": "6439612",
+    "cityid": null,
+    "cityname": null,
+    "streetid": null,
+    "streetname": null,
+    "msgtype": "address",
+    "messageResult": "המיקוד לכתובת הינו: 6439612",
+    "pob": null,
+    "houseNum": null,
+    "entrance": null
+  }
+}

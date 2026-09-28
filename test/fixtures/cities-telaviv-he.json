@@ -1,0 +1,14 @@
+{
+  "ReturnCode": 0,
+  "ErrorMessage": null,
+  "Result": [
+    {
+      "id": "1212",
+      "sym": "5000",
+      "n": "תל אביב - יפו",
+      "syn": "תל אביב יפו",
+      "divided": true,
+      "zip": "0000000"
+    }
+  ]
+}

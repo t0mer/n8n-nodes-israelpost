@@ -1,0 +1,16 @@
+{
+  "ReturnCode": 0,
+  "ErrorMessage": null,
+  "Result": {
+    "zip": "",
+    "cityid": null,
+    "cityname": null,
+    "streetid": null,
+    "streetname": null,
+    "msgtype": "unitedtown",
+    "messageResult": "המיקוד לכתובת הינו: ",
+    "pob": null,
+    "houseNum": null,
+    "entrance": null
+  }
+}

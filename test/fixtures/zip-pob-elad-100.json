@@ -1,0 +1,16 @@
+{
+  "ReturnCode": 0,
+  "ErrorMessage": null,
+  "Result": {
+    "zip": "4081002",
+    "cityid": null,
+    "cityname": "אלעד",
+    "streetid": null,
+    "streetname": null,
+    "msgtype": "POB",
+    "messageResult": "המיקוד עבור ת.ד 100 באלעד הינו:",
+    "pob": null,
+    "houseNum": null,
+    "entrance": null
+  }
+}
