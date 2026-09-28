@@ -177,7 +177,7 @@ So `תל-אביב - יפו`, `תל אביב יפו` and `תל אביב - יפו`
 **not** unified: `קריית` and `קרית` are different names.
 
 The node searches Israel Post with the name as you typed it, then with the normalized name, and
-finally with the first word only (so `תל אביב העיר` still reaches `תל אביב - יפו`). It stops at the
+finally with the first word only, as typed and normalized (so `תל אביב העיר` still reaches `תל אביב - יפו`). It stops at the
 first search that returns results, then picks one:
 
 1. an exact normalized match on the name or its synonym, if there is one

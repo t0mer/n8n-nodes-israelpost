@@ -101,6 +101,7 @@ describe('prefixQueries', () => {
 			{ prefix: 'תל-אביב יפו', fallback: false },
 			{ prefix: 'תל אביב יפו', fallback: false },
 			{ prefix: 'תל-אביב', fallback: true },
+			{ prefix: 'תל', fallback: true },
 		]);
 	});
 
@@ -109,7 +110,22 @@ describe('prefixQueries', () => {
 			'ביה"ס שער',
 			'ביהס שער',
 			'ביה"ס',
+			'ביהס',
 		]);
+	});
+
+	it('falls back to the normalized first word of a hyphenated name', async () => {
+		const search = vi.fn(async (prefix: string) =>
+			prefix === 'tel' ? [c('1212', 'Tel Aviv - Yafo'), c('68', 'Tel Adashim')] : [],
+		);
+		const pick = await resolveByName('Tel-Aviv Jaffa', search, 'first');
+		expect(search.mock.calls.map((call) => call[0])).toEqual([
+			'Tel-Aviv Jaffa',
+			'tel aviv jaffa',
+			'Tel-Aviv',
+			'tel',
+		]);
+		expect(pick).toMatchObject({ status: 'found', candidate: { id: '1212' } });
 	});
 
 	it('drops duplicate queries', () => {

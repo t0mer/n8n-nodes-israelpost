@@ -21,7 +21,7 @@ export function normalizeName(text: string): string {
 /**
  * Prefixes to query, in order: the name as typed (whitespace collapsed; the API
  * matches names with their quote marks and dashes), the normalized name, and
- * the first typed word as the fallback.
+ * the first word (typed, then normalized) as the fallback.
  */
 export function prefixQueries(text: string): { prefix: string; fallback: boolean }[] {
 	const typed = text.replace(/\s+/g, ' ').trim();
@@ -29,6 +29,7 @@ export function prefixQueries(text: string): { prefix: string; fallback: boolean
 		{ prefix: typed, fallback: false },
 		{ prefix: normalizeName(text), fallback: false },
 		{ prefix: typed.split(' ')[0], fallback: true },
+		{ prefix: normalizeName(text).split(' ')[0], fallback: true },
 	];
 	const seen = new Set<string>();
 	return queries.filter(({ prefix }) => {
