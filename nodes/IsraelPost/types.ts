@@ -8,7 +8,7 @@ export interface ApiEnvelope<T> {
 /** One row of `getcities-lang`. */
 export interface ApiLocality {
 	id: string;
-	/** CBS locality code (סמל יישוב). */
+	/** CBS locality code. */
 	sym: string;
 	/** Display name. */
 	n: string;

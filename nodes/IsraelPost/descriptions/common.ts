@@ -62,7 +62,7 @@ export function localityLocator(show: Show): INodeProperties {
 		type: 'resourceLocator',
 		default: { mode: 'name', value: '' },
 		required: true,
-		description: 'City, town or village (יישוב)',
+		description: 'City, town or village',
 		displayOptions: { show },
 		modes: [
 			{

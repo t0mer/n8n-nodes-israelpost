@@ -11,7 +11,7 @@ export const addressProperties: INodeProperties[] = [
 		required: true,
 		default: '',
 		placeholder: 'e.g. 6439612',
-		description: 'Seven-digit Israeli zip code (מיקוד). Spaces and dashes are ignored.',
+		description: 'Seven-digit Israeli zip code. Spaces and dashes are ignored.',
 		displayOptions: { show },
 	},
 	optionsCollection(show, ['delayMs', 'includeRaw', 'language', 'onNotFound', 'outputField']),
