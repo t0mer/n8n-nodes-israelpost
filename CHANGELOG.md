@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026.10.0
+
+- Replace Hebrew parenthetical glosses in UI descriptions and code comments with English only.
+
 ## 2026.9.0
 
 First release.
